@@ -49,13 +49,15 @@ src/api/                  前端请求函数
 src/stores/               Pinia 状态
 src/lang/                 中英文语言包
 src/utils/                路由、表格等工具
-server/routes/            /admin、/api 入口
+server/routes/            /admin、/api 入口，以及 /storage 上传文件读取
 server/admin/controller/  后台控制器（一表一控制器）
 server/common/            数据库与模型公共方法
 server/member/            会员端路由
 scripts/                  数据导入等脚本
 data/                     SQLite 数据文件（不入库）
 public/storage/           本地上传目录（不入库）
+build-prod.bat            Windows 生产构建脚本
+start-prod.bat            Windows 生产启动脚本
 types/                    全局类型声明
 ```
 
@@ -116,6 +118,26 @@ pnpm dev
 | `pnpm import:sqlite` | 从 MySQL 导入数据并生成 `data/app.sqlite` |
 
 Windows 下也可以双击 `start.bat` 启动，`close.bat` 关闭占用 8002 端口的进程。
+
+生产模式用项目根的两个脚本：
+
+| 脚本 | 作用 |
+| --- | --- |
+| `build-prod.bat` | 安装依赖并执行 `pnpm build`，产物在 `.output/` |
+| `start-prod.bat` | 运行 `.output/server/index.mjs`，默认 `127.0.0.1:8002` |
+
+它们等价于下面手工执行的命令：
+
+```bat
+pnpm install --frozen-lockfile
+pnpm build
+set PORT=8002
+set HOST=127.0.0.1
+node .output\server\index.mjs
+```
+
+相对 `pnpm dev`，生产模式不编译、不热更新、不加载 devtools，启动更快，也才是上线该用的方式。
+
 
 ## 环境变量
 
@@ -230,7 +252,25 @@ pnpm install --frozen-lockfile
 pnpm build
 ```
 
-产物在 `.output/`。服务器上需要保留整个项目目录（包含 `package.json`、`src`、`public` 和 `.env`），不能只拷贝 `.output`。启动：
+产物在 `.output/`。服务器上需要保留整个项目目录（包含 `package.json`、`src`、`public` 和 `.env`），不能只拷贝 `.output`。
+
+### Windows 本机或局域网部署
+
+双击 `build-prod.bat` 完成构建，再双击 `start-prod.bat` 启动，浏览器打开 `http://127.0.0.1:8002/#/admin` 即可。
+
+要让同一局域网的其他机器访问，先在 cmd 窗口里设置 `HOST`，再用局域网 IP 访问：
+
+```bat
+set PORT=8002
+set HOST=0.0.0.0
+start-prod.bat
+```
+
+`start-prod.bat` 会沿用当前窗口已有的 `PORT` / `HOST`，没设置时才用默认的 `127.0.0.1:8002`。
+
+同时需要在 Windows 防火墙里放行 8002 端口。改过代码后要重新运行 `build-prod.bat`，`start-prod.bat` 读的是构建产物，不会热更新。
+
+### Linux / 服务器
 
 ```bash
 PORT=8002 HOST=127.0.0.1 node .output/server/index.mjs
@@ -264,7 +304,7 @@ server {
 }
 ```
 
-`/storage/` 必须单独指向项目根的 `public/storage`：上传接口把文件写入该目录，而生产进程对外提供的是构建时复制进 `.output/public` 的静态文件，运行中新上传的文件不会自动出现。
+上传文件由 `server/routes/storage/[...path].ts` 在请求时直接读磁盘，所以运行中新上传的文件立刻可以访问，不需要重启，也不需要单独配置静态目录。Nginx 用 `alias` 直接指向 `public/storage` 会更快，作为可选优化；不配也能正常工作。
 
 上线检查：
 

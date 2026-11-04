@@ -294,6 +294,10 @@ server {
 
 `/storage/` 要单独指到项目根的 `public/storage`。上传接口把文件写到这个目录，生产进程对外提供的静态文件却是构建时复制进 `.output/public` 的那一份，运行中新上传的文件不会自动出现在那里。`alias` 的路径以服务器上的项目根为准，目录不存在时先建好，并让运行用户可写。
 
+`server/routes/storage/[...path].ts` 会在请求时直接读 `public/storage`，作为没有反向代理时的兜底（Windows 下 `start-prod.bat` 就用它）。有 Nginx 的 `alias` 时请求不会走到 Node，两者不冲突。
+
+Windows 生产模式用项目根的 `build-prod.bat` 构建、`start-prod.bat` 启动，不要用 `start.bat`（那是 `pnpm dev`）。
+
 用 systemd 或 pm2 保持进程，崩溃后自动拉起。改代码后需要重新 `pnpm build`，再重启这个进程。`pnpm dev` 的热更新不会作用到已经启动的 `.output`。
 
 上线后检查：用管理员账号打开 `/#/admin` 并登录；上传一张图片，确认 `/storage/...` 能打开；`.env` 和 `TOKEN_KEY` 没有进入 Git。
