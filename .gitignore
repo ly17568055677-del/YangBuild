@@ -1,0 +1,51 @@
+# 依赖与构建产物
+node_modules/
+.pnpm-store/
+.nuxt/
+.output/
+.output-*/
+dist/
+.cache/
+coverage/
+*.tsbuildinfo
+
+# 环境变量（保留示例文件）
+.env
+.env.*
+!.env.example
+
+# 数据库文件：本地数据，不进入仓库
+data/*
+!data/.gitkeep
+
+# 上传文件：运行时生成，不进入仓库
+public/storage/**
+!public/storage/.gitkeep
+
+# 日志与调试产物
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.page.html
+_tmp*
+*.local
+
+# 编辑器与系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+.cursor/
+.history/
+
+# 压缩包与临时文件
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.bak
+*.swp
+*~
