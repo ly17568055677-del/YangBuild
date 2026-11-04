@@ -6,7 +6,9 @@
     "dev": "nuxt dev --port 8002 --host 127.0.0.1",
     "build": "nuxt build",
     "preview": "nuxt preview --port 8002 --host 127.0.0.1",
-    "import:sqlite": "node scripts/import-mysql.mjs"
+    "import:sqlite": "node scripts/import-mysql.mjs",
+    "db:init": "node scripts/init-db.mjs",
+    "db:export": "node scripts/export-seed.mjs"
   },
   "dependencies": {
     "@element-plus/icons-vue": "2.3.2",

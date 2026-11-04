@@ -1,12 +1,20 @@
 # 给后续开发使用的说明
 
-本目录是独立的 SQLite 项目，不和 `../nuxt` 共用代码或数据库。开发地址是 `http://127.0.0.1:8002/`，数据文件是 `data/app.sqlite`。从 MySQL 工程导入初始数据的命令是 `pnpm import:sqlite`。
+本目录是独立的 SQLite 项目，不和 `../nuxt` 共用代码或数据库。开发地址是 `http://127.0.0.1:8002/`，数据文件是 `data/app.sqlite`。从 MySQL 工程导入初始数据的命令是 `pnpm import:sqlite`；仓库里的 `data/seed.sqlite` 是脱敏种子库，在 `data/app.sqlite` 不存在时执行 `pnpm db:init` 就能得到一套可登录、菜单齐全的库（管理员 `admin` / `123456`，登录后改掉）。
 
 本目录是 BuildAdmin 的 Nuxt 实现。浏览器里仍是原来的 Vue 管理端和会员端，接口由 Nuxt / Nitro 直接读写 SQLite。继续开发时以本文件和当前代码为准。
 
 ## 启动和停止
 
 依赖装过之后，在项目根执行 `pnpm dev`，或双击 `start.bat`。地址是 `http://127.0.0.1:8002/`，后台是 `http://127.0.0.1:8002/#/admin`。`close.bat` 关掉监听 8002 的进程。改控制器、表结构或 `schema_note` 后要重新执行一次，热更新看不到新列和新动作。
+
+### 数据库从哪来
+
+- `data/app.sqlite` 是运行数据，不入库。`data/seed.sqlite` 是唯一提交的数据库文件，带着 39 张表的结构、`schema_note`、菜单和基础数据。
+- 新环境执行 `pnpm db:init`（`scripts/init-db.mjs`）。`data/app.sqlite` 已存在就跳过，重建加 `--force`。种子库管理员是 `admin` / `123456`，登录后改掉。
+- 改过表结构、`schema_note`、菜单或基础数据之后，执行 `pnpm db:export`（`scripts/export-seed.mjs`）重新导出并提交，否则新环境拿到的还是旧结构。
+- 导出会清空日志、token、验证码、上传记录和会员流水，只保留 `id = 1` 的管理员并重置密码，配置里的 `ai_api_key`、SMTP 账号密码清空，`site_logo`、`site_favicon` 置空。以后新增敏感配置，要同步写进脚本的 `scrubConfig`。
+- 种子库用 `VACUUM INTO` 生成，是单文件、`journal_mode = DELETE`，不会带出 `-wal` / `-shm`。
 
 新的后台列表按这个顺序做，不要先手写一整套页面：
 
@@ -228,7 +236,7 @@ src/lang/backend/en/{路径}.ts
 
 页面和接口在同一个 Node 进程里。`VITE_AXIOS_BASE_URL=getCurrentDomain` 表示浏览器请求当前域名，反代时不要把页面和接口拆到两个域名。开发用的 `pnpm dev` 只给本机改代码，不要直接暴露到公网。
 
-环境：Node.js 22 或更高，pnpm 10 或更高。数据库是项目里的 `data/app.sqlite`，本目录没有迁移命令。需要重做一份数据时，在能连上原来 MySQL 的机器上执行 `pnpm import:sqlite`。`.env` 放在项目根。这个项目读 `DB_FILE`、`DB_PREFIX`、`DB_DATABASE`（只当作 information_schema 里的库名）和 `TOKEN_KEY`。上线时把 `TOKEN_KEY` 设成独立随机串，并且以后保持不变，换掉它会使已登录的 token 全部失效。把 `data/app.sqlite` 和项目一起带走。
+环境：Node.js 22 或更高，pnpm 10 或更高。数据库是项目里的 `data/app.sqlite`，本目录没有迁移命令。换环境时执行 `pnpm db:init` 用 `data/seed.sqlite` 初始化；需要重做一份完整数据时，在能连上原来 MySQL 的机器上执行 `pnpm import:sqlite`。`.env` 放在项目根。这个项目读 `DB_FILE`、`DB_PREFIX`、`DB_DATABASE`（只当作 information_schema 里的库名）和 `TOKEN_KEY`。上线时把 `TOKEN_KEY` 设成独立随机串，并且以后保持不变，换掉它会使已登录的 token 全部失效。把 `data/app.sqlite` 和项目一起带走。
 
 本机给自己或局域网使用：
 

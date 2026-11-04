@@ -89,6 +89,12 @@ Copy-Item .env.example .env
 
 3. 准备数据库（任选一种）：
 
+   - **用仓库里的种子库初始化**：`data/seed.sqlite` 是脱敏后的表结构和初始数据，执行下面的命令会在 `data/app.sqlite` 不存在时复制一份，已有文件不会被覆盖（重建用 `pnpm db:init --force`）。默认管理员是 `admin`，密码 `123456`，登录后请立即修改：
+
+```bash
+pnpm db:init
+```
+
    - **已有 `data/app.sqlite`**：直接放到项目根的 `data/` 目录。
    - **从 MySQL 导入**：在 `.env` 中填写 `DB_HOST`、`DB_PORT`、`DB_DATABASE`、`DB_USERNAME`、`DB_PASSWORD`，然后执行：
 
@@ -104,9 +110,9 @@ pnpm import:sqlite
 pnpm dev
 ```
 
-浏览器打开 `http://127.0.0.1:8002/`，后台是 `http://127.0.0.1:8002/#/admin`，使用数据库里已有的管理员账号登录。
+浏览器打开 `http://127.0.0.1:8002/`，后台是 `http://127.0.0.1:8002/#/admin`。用种子库初始化时管理员是 `admin` / `123456`。
 
-> 仓库不包含 `data/app.sqlite`、`.env` 和上传文件，请勿把生产数据或密码提交到 Git。
+> 仓库不包含 `data/app.sqlite`、`.env` 和上传文件，请勿把生产数据或密码提交到 Git。`data/seed.sqlite` 是唯一入库的数据库文件，导出时会清空日志、token、验证码和上传记录，重置账号密码，并清掉配置里的密钥。
 
 ## 常用命令
 
@@ -116,6 +122,8 @@ pnpm dev
 | `pnpm build` | 构建生产产物到 `.output/` |
 | `pnpm preview` | 预览构建产物，监听 `127.0.0.1:8002` |
 | `pnpm import:sqlite` | 从 MySQL 导入数据并生成 `data/app.sqlite` |
+| `pnpm db:init` | 用 `data/seed.sqlite` 生成 `data/app.sqlite`，已存在则跳过 |
+| `pnpm db:export` | 从当前 `data/app.sqlite` 导出脱敏的 `data/seed.sqlite` |
 
 Windows 下也可以双击 `start.bat` 启动，`close.bat` 关闭占用 8002 端口的进程。
 

@@ -15,8 +15,10 @@ coverage/
 !.env.example
 
 # 数据库文件：本地数据，不进入仓库
+# data/seed.sqlite 是脱敏后的种子库，需要提交，供 pnpm db:init 使用
 data/*
 !data/.gitkeep
+!data/seed.sqlite
 
 # 上传文件：运行时生成，不进入仓库
 public/storage/**
